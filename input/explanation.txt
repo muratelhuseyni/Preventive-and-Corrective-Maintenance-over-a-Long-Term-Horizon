@@ -1,0 +1,29 @@
+SLAs
+
+low: {90, 90, 90, 90, 90, 90, 84, 84, 84, 84, 84, 84, 86, 86, 86, 86, 86, 86, 0, 0, 0, 0, 0, 0}
+
+medium: {96, 96, 96, 96, 96, 96, 74, 74, 74, 74, 74, 74, 90, 90, 90, 90, 90, 90, 0, 0, 0, 0, 0, 0}
+
+---------------
+
+cor: preventive + corrective
+normal: only preventive
+
+------------
+
+pattern at each file:
+
+-realbegweek (with respect to hour)
+
+-OJ(Ongoing jobs)
+
+- Corrective jobs (if exists)
+
+-job  type  delay(pj)  *önceden artan= dummy deðer modelde yok!
+
+-Preventive jobs
+
+-ID  dj  rj  pj  Ymax
+
+
+

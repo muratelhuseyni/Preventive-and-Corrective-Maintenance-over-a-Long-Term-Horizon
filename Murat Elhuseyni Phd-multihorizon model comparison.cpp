@@ -159,8 +159,34 @@ vector <Base> GetDescendants(Base& rootbase, int trackid, vector<ParentChild>& P
 	return tempChildren;
 }
 
-void DatatoFile(int* SLAdaily, int n, int totaltt, int day, const vector<Job>& Jcurcor, const vector<Job>& Jcurprv, int** prevprdtms, int preventnum, int m, ofstream& dataday)
+void DatatoFile(ofstream& infsbleinst, int* SLAdaily, int n, int totaltt, int day, const vector<Job>& Jcurcor, const vector<Job>& Jcurprv, int** prevprdtms, int preventnum, int m, ofstream& dataday)
 {
+	//infsbleinst << "day=" << day << "\n";
+	////infsbleinst << "preventnum=" << preventnum << "\n";
+
+	//for (int t = 0; t < m; ++t)
+	//{
+	//	if (prevprdtms[t][0] != -1)
+	//	{
+	//		int job = prevprdtms[t][0];
+	//		int type = prevprdtms[t][1];
+	//		int delay = prevprdtms[t][2];
+
+	//		infsbleinst << job << "\t" << type << "\t" << delay << "\t" << t*preventnum << "\n";
+	//	}
+	//}
+
+	//for each(Job job in Jcurcor)
+	//	infsbleinst << job.ID << "\t" << job.pj << "\t" << job.rj << "\t" << job.dj << "\t"
+	//	<< job.Ymax << "\n";
+
+	//infsbleinst << "\n";
+	//for each(Job job in Jcurprv)
+	//	infsbleinst << job.ID << "\t" << job.pj << "\t" << job.rj << "\t" << job.dj << "\t"
+	//	<< job.Ymax << "\n";
+
+	//////
+
 	for (int t = 0; t < m; ++t)
 	{
 		if (prevprdtms[t][0] != -1)
@@ -181,6 +207,7 @@ void DatatoFile(int* SLAdaily, int n, int totaltt, int day, const vector<Job>& J
 	for each(Job job in Jcurprv)
 		dataday << job.ID << "\t" << job.pj << "\t" << job.rj << "\t" << job.dj << "\t"
 		<< job.Ymax << "\n";
+
 
 }
 
@@ -1684,7 +1711,9 @@ vector<vector<Base>> Write(const IloModel& model, const IloCplex& cplex, const I
 							for (int a = (t + 1)*preventnum; a < (t + 2)*preventnum - dist - t; ++a)
 							{
 								if (cplex.getValue(y[a][b]) >= 0.001)
+								{
 									ParChildAs.emplace_back(b, a);
+								}
 							}
 						}
 
@@ -1743,21 +1772,22 @@ vector<vector<Base>> Write(const IloModel& model, const IloCplex& cplex, const I
 		}
 	}
 
-	//only to write comput times
-	/*if (BaseAs.size() == 0)
+	if (BaseAs.size() == 0)
 	{
-	if (week >= 60)
-	{
-	myfile << week + 1 << "\t" << to_string(prevsize) << "\t" << to_string(corsize) << "\t" << SLAviolation << "\t"
-	<< Ymaxviolation << "\t" << tard_0 << "\t" << tard_1 << "\t" << earl << "\t"
-	<< wait << "\t" << to_string(load)
-	<< "\t" << setprecision(2) << fixed << to_string(curtime);
-	myfile << "\n";
+		if (week >= 60)
+		{
+			myfile << week + 1 << "\t" << to_string(prevsize) << "\t" << to_string(corsize) << "\t" << SLAviolation << "\t"
+				<< Ymaxviolation << "\t" << tard_0 << "\t" << tard_1 << "\t" << earl << "\t"
+				<< wait << "\t" << to_string(load)
+				<< "\t" << setprecision(2) << fixed << to_string(curtime);
+			myfile << "\n";
+		}
+
+		return cand;
 	}
-	return cand;
-	}*/
 
 	//Fine-tune finish times
+
 	vector<Base> sametrack;
 	for (int i = 0; i < BaseAs.size(); i++)
 	{
@@ -2197,8 +2227,8 @@ vector<vector<Base>> Write(const IloModel& model, const IloCplex& cplex, const I
 	if (lastchild.id >= 0)
 		cand[kindex][lastchildindex] = lastchild;
 
-	/*if (week < 60)
-		return cand;*/
+	if (week < 60)
+		return cand;
 
 	vector<int> scheduled;
 
@@ -2362,6 +2392,7 @@ vector<vector<Base>> Write(const IloModel& model, const IloCplex& cplex, const I
 		//24'ten sonra başlaacak, o nedenle 24'e kadar 0
 		for (int t = 0; t < 24; ++t)
 			countpark[t]++;
+
 	}
 
 	for each (Job job in Jcurprv)
@@ -2383,8 +2414,8 @@ vector<vector<Base>> Write(const IloModel& model, const IloCplex& cplex, const I
 			for (int t = yjmax; t < 24; ++t)
 				countpark[t]++;
 	}
-
 	//countpark-others	
+
 	for (int t = 0; t < 24; ++t)
 	{
 		int fark = preventnum - countpark[t] - (SLA[t] - (n - preventnum));
@@ -2397,15 +2428,15 @@ vector<vector<Base>> Write(const IloModel& model, const IloCplex& cplex, const I
 
 	load = (l / (m * 24)) * 100;
 
-	string type;
-	if (sol == 0 && week >= 0)
+	/*string type;
+	if (sol == 0 && week >= 60)
 	{
-		myfile << week + 1 << "\t" << to_string(prevsize) << "\t" << to_string(corsize) << "\t" << SLAviolation << "\t"
-			<< Ymaxviolation << "\t" << tard_0 << "\t" << tard_1 << "\t" << earl << "\t"
-			<< wait << "\t" << to_string(load)
-			<< "\t" << setprecision(2) << fixed << to_string(cplex.getMIPRelativeGap()) << "\t" << setprecision(2) << fixed << curtime;
-		myfile << "\n";
-	}
+	myfile << week + 1 << "\t" << to_string(prevsize) << "\t" << to_string(corsize) << "\t" << SLAviolation << "\t"
+	<< Ymaxviolation << "\t" << tard_0 << "\t" << tard_1 << "\t" << earl << "\t"
+	<< wait << "\t" << to_string(load)
+	<< "\t" << setprecision(2) << fixed << to_string(curtime);
+	myfile << "\n";
+	}*/
 
 	//time = cplex.getCplexTime();
 	delete[] basebuffer;
@@ -3266,6 +3297,324 @@ void Writesade(const IloModel& model, const IloCplex& cplex, const IloEnv& env, 
 	//model.remove(SLAconstraints);
 }
 
+void GenerateWeeklyJob(const JobInt& Jint, const JobInt& Jcor, vector<Job>& Jprvnext, vector<Job>& Jcornext, vector<Job>& Jcurprv, vector<Job>& Jcurcor,
+	vector<Job>& tempJcurprv, vector<Job>& tempJcurcor, int endweek, int begweek, int tt, int** prevprdtms, int m, int bf, int coef)
+{
+	////NEWWW //06.01.17
+	////omit jnext from jcur
+
+	for each (Job job in Jprvnext)
+		Jcurprv.push_back(job);
+
+	//bütün corlar next periyoda aktarılacak, due to rolling horizon!
+	for each (Job job in Jcornext)
+		Jcurcor.push_back(job);
+
+	// Büyük Jint ve Jcor'dan vector<Job> Jcurprv, vector<Job> Jcurcor çekilmeli!
+	//determine preventive jobs at current week
+	//Jcurprv sürekli güncelleniyor ve üstte kalanlar daha henüz bakılmamış olanlar.
+	//Update Jcurprv
+	for (int i = 0; i < Jint.size(); ++i) //each job
+		for (int j = 0; j < Jint[i].size(); ++j) //each interval
+		{
+			Job job = Jint[i][j];
+			int release = job.rj;
+			if (release < endweek && release >= begweek) //duruma göre değiştirirsin!
+			{
+				bool absent = true;
+				for each (Job j in Jcurprv)
+				{
+					int ID = job.ID;
+					if (ID == j.ID)
+					{
+						absent = false;
+						break;
+					}
+				}
+
+				if (absent)
+					Jcurprv.push_back(job);
+			}
+		}
+
+	tempJcurprv = Jcurprv;
+	tempJcurcor = Jcurcor;
+
+	//detect common elements and get rid of preventive job as it has been failed to be fulfilled up to now
+	for (int i = 0; i < tempJcurprv.size(); ++i)
+	{
+		Job prevjob = tempJcurprv[i];
+		for (int j = 0; j < tempJcurcor.size(); ++j)
+		{
+			Job corjob = tempJcurcor[j];
+			if (prevjob.ID == corjob.ID)
+			{
+				int index = -1;
+				//find index in Jcurprv
+				for (int k = 0; k < Jcurprv.size(); ++k)
+				{
+					int job = Jcurprv[k].ID;
+					if (job == prevjob.ID)
+					{
+						index = k;
+						break;
+					}
+				}
+
+				//01.10.2017
+				bool found = false;
+				for (int t = 0; t < m; ++t)
+				{
+					if (prevprdtms[t][0] != -1)
+					{
+						int job = prevprdtms[t][0];
+						int type = prevprdtms[t][1];
+
+						if (type == 0 && job == prevjob.ID)
+						{
+							int corindex = -1;
+
+							//find index in Jcurcor
+							for (int k = 0; k < Jcurcor.size(); ++k)
+							{
+								int jobcor = Jcurcor[k].ID;
+								if (jobcor == corjob.ID)
+								{
+									corindex = k;
+									break;
+								}
+							}
+
+							if (corindex >= 0)
+							{
+								swap(Jcurcor[corindex], Jcurcor.back());
+								Jcurcor.pop_back();
+							}
+
+							found = true;
+							break;
+						}
+					}
+				}
+
+				if (found)
+					break;
+
+				if (prevjob.Ymax > corjob.rj)
+				{
+					swap(Jcurprv[index], Jcurprv.back());
+					Jcurprv.pop_back();
+				}
+
+				else //ynax<rcor => cora gerek yok, out of service zaten
+				{
+					int corindex = -1;
+
+					//find index in Jcurcor
+					for (int k = 0; k < Jcurcor.size(); ++k)
+					{
+						int jobcor = Jcurcor[k].ID;
+						if (jobcor == corjob.ID)
+						{
+							corindex = k;
+							break;
+						}
+					}
+
+					if (corindex >= 0)
+					{
+						swap(Jcurcor[corindex], Jcurcor.back());
+						Jcurcor.pop_back();
+					}
+
+				}
+
+				break;
+			}
+		}
+
+	}
+
+	int realbegweek = begweek; //olması gereken
+
+	begweek = 0;
+	endweek = tt;
+
+	//NEWW //to next per
+	Jprvnext.clear();
+	Jcornext.clear();
+
+	tempJcurprv = Jcurprv;
+
+	for each (Job job in tempJcurprv)
+	{
+		int j = job.ID;
+		int rj = job.rj - realbegweek;
+		int pj = job.pj;
+		int dj = job.dj - realbegweek;
+		int size = tempJcurprv.size();
+
+		//first thing is latest start
+		int latstartj = endweek - 1 - pj; //bdj
+
+		int tard = endweek - dj;
+		int earl = dj - latstartj;
+
+		if (bf != 2)
+		{
+			if (latstartj < rj || dj >= endweek || (dj>latstartj && earl > tard))
+			{
+				Jprvnext.push_back(job);
+				for (int i = 0; i < size; ++i)
+				{
+					if (j == Jcurprv[i].ID)
+					{
+						swap(Jcurprv[i], Jcurprv.back());
+						Jcurprv.pop_back();
+						break;
+					}
+				}
+			}
+		}
+
+		else
+		{
+			if (latstartj < rj || dj >= endweek || (dj>latstartj && earl > coef*tard))
+			{
+				Jprvnext.push_back(job);
+				for (int i = 0; i < size; ++i)
+				{
+					if (j == Jcurprv[i].ID)
+					{
+						swap(Jcurprv[i], Jcurprv.back());
+						Jcurprv.pop_back();
+						break;
+					}
+				}
+			}
+		}
+
+	}
+
+	vector<int> cornext;
+
+	//Update Jcurcor - aday cor iş önceden kalan iş listesinde yoksa listeye al
+	for (int i = 0; i < Jcor.size(); ++i) //each job
+		for (int j = 0; j < Jcor[i].size(); ++j) //each interval
+		{
+			Job job = Jcor[i][j];
+			int rj = job.rj - realbegweek;
+			if (rj >= 0 && rj < 24)
+			{
+				int ID = job.ID;
+				bool absent = true;
+				for each (Job j in Jcurcor)
+				{
+					if (ID == j.ID)
+					{
+						absent = false;
+						break;
+					}
+				}
+
+				if (absent)
+				{
+					if (cornext.size() > 1)
+						sort(cornext.begin(), cornext.end());
+
+					if (binary_search(cornext.begin(), cornext.end(), job.ID))
+						continue;
+					else
+					{
+						Jcornext.push_back(job);
+						cornext.push_back(job.ID);
+					}
+				}
+
+			}
+
+		}
+
+}
+
+void GenerateWeeklyJobwoutcor(const JobInt& Jint, vector<Job>& Jprvnext, vector<Job>& Jcornext, vector<Job>& Jcurprv, vector<Job>& Jcurcor,
+	vector<Job>& tempJcurprv, vector<Job>& tempJcurcor, int endweek, int begweek, int tt)
+{
+	////NEWWW //06.01.17
+	////omit jnext from jcur
+
+	for each (Job job in Jprvnext)
+		Jcurprv.push_back(job);
+
+	// Büyük Jint ve Jcor'dan vector<Job> Jcurprv, vector<Job> Jcurcor çekilmeli!
+	//determine preventive jobs at current week
+	//Jcurprv sürekli güncelleniyor ve üstte kalanlar daha henüz bakılmamış olanlar.
+	//Update Jcurprv
+	for (int i = 0; i < Jint.size(); ++i) //each job
+		for (int j = 0; j < Jint[i].size(); ++j) //each interval
+		{
+			Job job = Jint[i][j];
+			int release = job.rj;
+			if (release < endweek && release >= begweek) //duruma göre değiştirirsin!
+			{
+				bool absent = true;
+				for each (Job j in Jcurprv)
+				{
+					int ID = job.ID;
+					if (ID == j.ID)
+					{
+						absent = false;
+						break;
+					}
+				}
+
+				if (absent)
+					Jcurprv.push_back(job);
+			}
+		}
+
+	tempJcurprv = Jcurprv;
+
+	int realbegweek = begweek; //olması gereken
+
+	begweek = 0;
+	endweek = tt;
+
+	//NEWW //to next per
+	Jprvnext.clear();
+
+	tempJcurprv = Jcurprv;
+
+	for each (Job job in tempJcurprv)
+	{
+		int j = job.ID;
+		int rj = job.rj - realbegweek;
+		int pj = job.pj;
+		int dj = job.dj - realbegweek;
+		int size = tempJcurprv.size();
+
+		//first thing is latest start
+		int latstartj = endweek - 1 - pj; //bdj
+
+		int adj = endweek - dj;
+
+		if (latstartj < rj || dj >= endweek || (dj>latstartj && dj - latstartj > adj))
+		{
+			Jprvnext.push_back(job);
+			for (int i = 0; i < size; ++i)
+			{
+				if (j == Jcurprv[i].ID)
+				{
+					swap(Jcurprv[i], Jcurprv.back());
+					Jcurprv.pop_back();
+					break;
+				}
+			}
+		}
+
+	}
+
+}
 
 void SetupModel(int maxYmin, int maxYmax, int minYmin, vector <int> mmin, int s, int n, int tt, int m, int M, int* SLA, int* pj, int realbegweek, int begweek, int endweek, IloEnv& env, IloModel& model, IloCplex& cplex, BoolVarArray3& o,
 	BoolVarArray2& y, IloBoolVarArray& dummy, BoolVarArray2& z, IloNumVarArray& P, BoolVarArray3& x, BoolVarArray3& e, BoolVarArray3& a, BoolVarArray3& b, NumVarArray2& E, NumVarArray2& T, NumVarArray2& C, NumVarArray2& Sj, IloNumVarArray& S,
@@ -5096,7 +5445,7 @@ void SetupModel42(int maxYmin, int maxYmax, int minYmin, vector <int> mmin, int 
 	}
 }
 
-bool SolveModel(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
+bool SolveModel(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, ofstream& infsbleinst, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
 	int* cumSLAviol, int* cumYmaxviol, double* cumgap, int* cumnodes, ofstream& datarunfile, vector<int>& critics, int pencor, int penminus, int penymaxplus,
 	int maxYmin, int maxYmax, int minYmin, int buffer, vector <int> mmin, int s, int n, int tt, int m, int M, int* SLA, int* pj, int realbegweek, int begweek, int endweek, vector<Job>& Jint, vector<Job>& Jcor,
 	vector<int>& preventives, vector<int>& tardyjobs, vector<int>& correctives, int* d, int* Ymax, int* rr, int limit, int** prevprdtms, int bf, int coef)
@@ -5211,9 +5560,7 @@ bool SolveModel(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int wa
 
 	SetupModel(maxYmin, maxYmax, minYmin, mmin, s, n, tt, m, M, SLA, pj, realbegweek, begweek, endweek, env, model, cplex, o, y, dummy, z, P, x, e, a, b, E, T, C, Sj, S, F, K, L, B, np, deltaminusSLA, deltaYmaxplus, coroutservice, Jint, Jcor, preventives, tardyjobs);
 
-	//cplex.setParam(IloCplex::TiLim, 10);
-
-	cplex.setParam(IloCplex::TiLim, 60*2);
+	cplex.setParam(IloCplex::TiLim, 60 * 2);
 
 	//double curtime = cplex.getCplexTime() - time;
 
@@ -5228,10 +5575,12 @@ bool SolveModel(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int wa
 		/*vector<vector<Base>> cand = Write(model, cplex, env, myfile, n, begweek, endweek, realbegweek, warmup, dayindex, tt, m, s, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol, cumgap, cumnodes, buffer
 		, B, o, y, P, x, e, a, b, E, T, C, Sj, S, F, L, np, deltaminusSLA, deltaYmaxplus, coroutservice, datarunfile, Jcor, Jint, initials, SLA, prevprdtms);
 
-		//DeleteJobsbuffer(Jint, Jcor, cplex, x, np, C, Sj, S, F, prevprdtms, preventnum, m, cand);*/
+		DeleteJobsbuffer(Jint, Jcor, cplex, x, np, C, Sj, S, F, prevprdtms, preventnum, m, cand);*/
 
-		myfile << Jint.size() << "\t" << Jcor.size() << "\t" << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() * 100 << "\t";
 
+		//myfile << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() << "\t";
+
+		myfile << cplex.getNnodes() << "\t";
 	}
 
 	else
@@ -5257,7 +5606,7 @@ bool SolveModel(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int wa
 	return false;
 }
 
-bool SolveModelCut(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
+bool SolveModelCut(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, ofstream& infsbleinst, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
 	int* cumSLAviol, int* cumYmaxviol, double* cumgap, int* cumnodes, ofstream& datarunfile, vector<int>& critics, int pencor, int penminus, int penymaxplus,
 	int maxYmin, int maxYmax, int minYmin, int buffer, vector <int> mmin, int s, int n, int tt, int m, int M, int* SLA, int* pj, int realbegweek, int begweek, int endweek, vector<Job>& Jint, vector<Job>& Jcor,
 	vector<int>& preventives, vector<int>& tardyjobs, vector<int>& correctives, int* d, int* Ymax, int* rr, int limit, int** prevprdtms, int bf, int coef)
@@ -5788,10 +6137,135 @@ bool SolveModelCut(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int
 
 	}
 
+	///////////////////////////////////////////
+
+	//double start = cplex.getTime();
+	//int neigh = 0;
+	//Heuristic* pinc;
+	//int count = 0;
+
+	//int neighbest = neigh;
+	//int heurcriticsize = critics.size();
+
+	////heur = 1; //dif_t içerir, slackdesc-ascpj değil!!!
+	////heur = 1; //dif_t içerir, slackdesc-ascpj değil!!!
+
+	//start = cplex.getTime();
+	//neigh = 0;
+	//count = 0;
+
+	//neighbest = neigh;
+	//heurcriticsize = critics.size();
+
+	//bool devam = false;
+
+	//while (true)
+	//{
+	//	if (devam == false)
+	//	{
+	//		pinc = new Heuristic(m, criticsize, limit, tt, n, tt, pj, d, Ymax, rr, SLA, neigh, preventives, correctives, critics, penymaxplus, penminus, pencor, initials);
+	//		pinc->heur = 1;
+
+
+	//		if (bf == 2)
+	//		{
+	//			pinc->rtune = 1;
+	//			pinc->coef = coef;
+	//		}
+
+	//		else
+	//			pinc->rtune = 0;
+
+	//		if (pinc->RunHeuristic())
+	//		{
+	//			neigh += 5;
+	//			if (pinc->obj < 0)
+	//			{
+	//				//delete pinc;
+	//				break;
+	//			}
+
+	//			Heuristic* pinc2 = new Heuristic(m, criticsize, limit, tt, n, tt, pj, d, Ymax, rr, SLA, neigh, preventives, correctives, critics, penymaxplus, penminus, pencor, initials);
+	//			pinc2->heur = 1;
+	//			if (bf == 2)
+	//			{
+	//				pinc2->rtune = 1;
+	//				pinc2->coef = coef;
+	//			}
+
+	//			else
+	//				pinc2->rtune = 0;
+
+	//			if (pinc2->RunHeuristic())
+	//			{
+	//				if (pinc->obj <= pinc2->obj || pinc2->obj < 0)
+	//				{
+	//					delete pinc2;
+	//					break;
+	//				}
+
+	//				else
+	//				{
+	//					delete pinc;
+	//					neighbest = neigh;
+	//					pinc = new Heuristic(*pinc2);
+	//					delete pinc2;
+	//					devam = true;
+	//				}
+	//			}
+	//		}
+	//	}
+
+	//	else
+	//	{
+	//		neigh += 5;
+	//		Heuristic* pinc2 = new Heuristic(m, criticsize, limit, tt, n, tt, pj, d, Ymax, rr, SLA, neigh, preventives, correctives, critics, penymaxplus, penminus, pencor, initials);
+	//		pinc2->heur = 1;
+	//		if (bf == 2)
+	//		{
+	//			pinc2->rtune = 1;
+	//			pinc2->coef = coef;
+	//		}
+	//		else
+	//			pinc2->rtune = 0;
+
+	//		if (pinc2->RunHeuristic())
+	//		{
+	//			if (pinc->obj <= pinc2->obj || pinc2->obj < 0)
+	//			{
+	//				delete pinc2;
+	//				break;
+	//			}
+	//			else
+	//			{
+	//				delete pinc;
+	//				neighbest = neigh;
+	//				pinc = new Heuristic(*pinc2);
+	//				delete pinc2;
+	//			}
+	//		}
+	//	}
+
+	//}
+
+	////////later
+	//if (pinc->obj >= 0)
+	//{
+	//	cout << "obj = " << pinc->obj << endl;
+	//	IloNumVarArray startVar(env);
+	//	IloNumArray startVal(env);
+
+	//	MIPstart4(startVar, startVal, model, pinc, s, n, tt, m, y, P, x, e, a, b, E, T, C, Sj, S, F, L, B, np, o, deltaYmaxplus, deltaminusSLA, preventives, correctives, tardyjobs, rr, pj, d, Ymax, SLA);
+	//	cplex.addMIPStart(startVar, startVal);
+
+	//	startVal.clear();
+	//	startVar.clear();
+	//}
+
+	//else
+	//	cout << "INFEASIBLE!!!!!!!" << endl;
+
 	cplex.setParam(IloCplex::TiLim, 60 * 2);
-
-	//cplex.setParam(IloCplex::TiLim, 20);
-
 	time = cplex.getCplexTime();
 
 	IloBool success = cplex.solve();
@@ -5805,9 +6279,9 @@ bool SolveModelCut(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int
 
 		DeleteJobsbuffer(Jint, Jcor, cplex, x, np, C, Sj, S, F, prevprdtms, preventnum, m, cand);*/
 
-		myfile << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() * 100 << "\t";
+		//myfile << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() << "\t";
 
-		//myfile << cplex.getNnodes() << "\t";
+		myfile << cplex.getNnodes() << "\t";
 	}
 
 	else
@@ -6114,294 +6588,7 @@ bool SolveModelonlyHeur(double& z1, int* SLAdaily, int totaltt, ofstream& myfile
 	return false;
 }
 
-bool SolveModelHeur1(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
-	int* cumSLAviol, int* cumYmaxviol, double* cumgap, int* cumnodes, ofstream& datarunfile, vector<int>& critics, int pencor, int penminus, int penymaxplus,
-	int maxYmin, int maxYmax, int minYmin, int buffer, vector <int> mmin, int s, int n, int tt, int m, int M, int* SLA, int* pj, int realbegweek, int begweek, int endweek, vector<Job>& Jint, vector<Job>& Jcor,
-	vector<int>& preventives, vector<int>& tardyjobs, vector<int>& correctives, int* d, int* Ymax, int* rr, int limit, int** prevprdtms, int bf, int coef, ofstream& dataday)
-{
-	//3 indices: (type)(job)(time) type0 - prev; 1 - corm
-	IloEnv env;
-	IloModel model(env);
-
-	IloBoolVarArray dummy = CreateBoolVarArray(env, s, "dummy");
-
-	BoolVarArray2 y = CreateBoolVarArray2(env, s, s, "y"); //yab
-	BoolVarArray2 z = CreateBoolVarArray2(env, s, s, "z"); //zab
-	BoolVarArray3 x = CreateBoolVarArray3(env, 2, s, n, "x"); // 
-	BoolVarArray3 e = CreateBoolVarArray3(env, 2, n, tt, "e"); // 1 at maint j exit, 0 else
-	BoolVarArray3 a = CreateBoolVarArray3(env, 2, n, tt, "a"); //1 at maint, 0 else
-	BoolVarArray3 b = CreateBoolVarArray3(env, 2, n, tt, "b"); // 1 at maint j begin, 0 else
-	BoolVarArray3 o = CreateBoolVarArray3(env, 2, n, tt, "o");   //out of service
-	BoolVarArray2 np = CreateBoolVarArray2(env, 2, n, "np");   //to next period
-	IloNumVarArray P = CreateNumVarArray(env, s, "P", 0, IloInfinity); //block makespan
-	NumVarArray2 E = CreateNumVarArray2(env, 2, n, "E", 0, IloInfinity);
-	NumVarArray2 T = CreateNumVarArray2(env, 2, n, "T", 0, IloInfinity);//tardiness
-	NumVarArray2 C = CreateNumVarArray2(env, 2, n, "C", 0, IloInfinity); //Job completion
-	NumVarArray2 Sj = CreateNumVarArray2(env, 2, n, "Sj", 0, IloInfinity); //Job start
-	IloNumVarArray S = CreateNumVarArray(env, s, "S", 0, IloInfinity); // Start time of block b
-	IloNumVarArray F = CreateNumVarArray(env, s, "F", 0, IloInfinity); // Finish time of block b
-
-	//Linearization vars
-	IloNumVarArray K = CreateNumVarArray(env, s, "K", 0, IloInfinity); // Finish time of block b
-	NumVarArray3 L = CreateNumVarArray3(env, 2, s, n, "L", 0, IloInfinity); // ENd bj
-	NumVarArray3 B = CreateNumVarArray3(env, 2, s, n, "B", 0, IloInfinity); //linearization var - begin bj
-
-	IloNumVarArray deltaminusSLA = CreateNumVarArray(env, tt, "deltaSLA-", 0, IloInfinity); //sladundersatisfaction
-	IloNumVarArray deltaYmaxplus = CreateNumVarArray(env, n, "deltaYmax+", 0, IloInfinity); //prevjobs
-	IloNumVarArray coroutservice = CreateNumVarArray(env, n, "coroutserv", 0, IloInfinity); //corjobs
-
-	NumVarArray2 Tj = CreateNumVarArray2(env, 2, n, "Tj", 0, IloInfinity);//finsh tardiness
-
-	IloExpr objExp(env);
-
-	if (bf == 2)
-		for each(Job job in Jint)
-		{
-			int j = job.ID;
-			objExp += coef * (pencor - penymaxplus)*T[0][j] + E[0][j] + penymaxplus*deltaYmaxplus[j];
-		}
-	else
-		for each(Job job in Jint)
-		{
-			int j = job.ID;
-			objExp += T[0][j] + E[0][j] + penymaxplus*deltaYmaxplus[j];
-		}
-
-	for each(Job job in Jcor)
-	{
-		int j = job.ID;
-		objExp += pencor*T[1][j];
-	}
-
-	for (int t = 0; t < tt; ++t)
-		objExp += penminus*deltaminusSLA[t];
-
-	IloObjective obj = IloMinimize(env, objExp, "obj");
-	model.add(obj);
-	objExp.end();
-	IloCplex cplex(model);
-	int criticsize = critics.size();
-
-	//initials
-	vector<int> initials;
-
-	int maxnontard = -1;
-	int mintard = 1000;
-
-	int preventnum = Jint.size() + Jcor.size();
-
-
-	vector<int> initbasenums;
-	//for (int i = 0; i < m; ++i)
-
-	if (dayindex > 0)
-	{
-		//prvprdtms'tan ilgili şeyleri çekip model.add dersin
-
-		for (int t = 0; t < m; ++t)
-		{
-			if (prevprdtms[t][0] != -1)
-			{
-				int job = prevprdtms[t][0];
-				int type = prevprdtms[t][1];
-				int delay = prevprdtms[t][2];
-				//int start = prevprdtms[t][3];
-
-				initials.push_back(job);
-				initbasenums.push_back(t*preventnum);
-
-				model.add(x[type][t*preventnum][job] == 1);
-
-				//2.11.17-1
-				for (int i = 0; i < m; ++i)
-					for (int b = i*preventnum; b < (i + 1)*preventnum - i; ++b)
-					{
-						if (b != t*preventnum)
-							model.add(x[type][b][job] == 0);
-					}
-
-				model.add(L[type][t*preventnum][job] >= delay);
-				model.add(B[type][t*preventnum][job] == 0);
-			}
-		}
-	}
-
-
-	SetupModel(maxYmin, maxYmax, minYmin, mmin, s, n, tt, m, M, SLA, pj, realbegweek, begweek, endweek, env, model, cplex, o, y, dummy, z, P, x, e, a, b, E, T, C, Sj, S, F, K, L, B, np, deltaminusSLA, deltaYmaxplus, coroutservice, Jint, Jcor, preventives, tardyjobs);
-
-	//cplex.setParam(IloCplex::TiLim, 10);
-
-	cplex.setParam(IloCplex::TiLim, 60 * 2);
-	///////////////////////////////////////////
-
-	double start = cplex.getTime();
-	int neigh = 0;
-	Heuristic* pinc;
-	int count = 0;
-
-	int neighbest = neigh;
-	int heurcriticsize = critics.size();
-
-	//heur = 1; //dif_t içerir, slackdesc-ascpj değil!!!
-	//heur = 1; //dif_t içerir, slackdesc-ascpj değil!!!
-
-	start = cplex.getTime();
-	neigh = 0;
-	count = 0;
-
-	neighbest = neigh;
-	heurcriticsize = critics.size();
-
-	bool devam = false;
-
-	while (true)
-	{
-		if (devam == false)
-		{
-			pinc = new Heuristic(m, criticsize, limit, tt, n, tt, pj, d, Ymax, rr, SLA, neigh, preventives, correctives, critics, penymaxplus, penminus, pencor, initials);
-			pinc->heur = 1;
-
-
-			if (bf == 2)
-			{
-				pinc->rtune = 1;
-				pinc->coef = coef;
-			}
-
-			else
-				pinc->rtune = 0;
-
-			if (pinc->RunHeuristic())
-			{
-				neigh += 5;
-				if (pinc->obj < 0)
-				{
-					//delete pinc;
-					break;
-				}
-
-				Heuristic* pinc2 = new Heuristic(m, criticsize, limit, tt, n, tt, pj, d, Ymax, rr, SLA, neigh, preventives, correctives, critics, penymaxplus, penminus, pencor, initials);
-				pinc2->heur = 1;
-				if (bf == 2)
-				{
-					pinc2->rtune = 1;
-					pinc2->coef = coef;
-				}
-
-				else
-					pinc2->rtune = 0;
-
-				if (pinc2->RunHeuristic())
-				{
-					if (pinc->obj <= pinc2->obj || pinc2->obj < 0)
-					{
-						delete pinc2;
-						break;
-					}
-
-					else
-					{
-						delete pinc;
-						neighbest = neigh;
-						pinc = new Heuristic(*pinc2);
-						delete pinc2;
-						devam = true;
-					}
-				}
-			}
-		}
-
-		else
-		{
-			neigh += 5;
-			Heuristic* pinc2 = new Heuristic(m, criticsize, limit, tt, n, tt, pj, d, Ymax, rr, SLA, neigh, preventives, correctives, critics, penymaxplus, penminus, pencor, initials);
-			pinc2->heur = 1;
-			if (bf == 2)
-			{
-				pinc2->rtune = 1;
-				pinc2->coef = coef;
-			}
-			else
-				pinc2->rtune = 0;
-
-			if (pinc2->RunHeuristic())
-			{
-				if (pinc->obj <= pinc2->obj || pinc2->obj < 0)
-				{
-					delete pinc2;
-					break;
-				}
-				else
-				{
-					delete pinc;
-					neighbest = neigh;
-					pinc = new Heuristic(*pinc2);
-					delete pinc2;
-				}
-			}
-		}
-
-	}
-
-	//////later
-	if (pinc->obj >= 0)
-	{
-		cout << "obj = " << pinc->obj << endl;
-		IloNumVarArray startVar(env);
-		IloNumArray startVal(env);
-
-		MIPstart4(startVar, startVal, model, pinc, s, n, tt, m, y, P, x, e, a, b, E, T, C, Sj, S, F, L, B, np, o, deltaYmaxplus, deltaminusSLA, preventives, correctives, tardyjobs, rr, pj, d, Ymax, SLA);
-		cplex.addMIPStart(startVar, startVal);
-
-		startVal.clear();
-		startVar.clear();
-	}
-
-	else
-		cout << "INFEASIBLE!!!!!!!" << endl;
-
-	cplex.setParam(IloCplex::TiLim, 60 * 2);
-
-	time = cplex.getCplexTime();
-
-	IloBool success = cplex.solve();
-	//DatatoFile(infsbleinst, SLAdaily, n, totaltt, realbegweek, Jcor, Jint);
-
-	double elapsedtime = cplex.getCplexTime() - time;
-
-	if (success && cplex.isPrimalFeasible())
-	{
-		//myfile << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() << "\t";
-
-		myfile << cplex.getNnodes() << "\t";
-	}
-
-	else
-	{
-		// olmadı instanceları buraya yazdır!		
-		ofstream infsbleinst("infsble.txt");
-		//DatatoFile(infsbleinst, SLAdaily, n, totaltt, realbegweek, Jcor, Jint);
-		cplex.exportModel("infeasible.lp");
-
-		myfile << "INFEASIBLE!!!!" << endl;
-		myfile << "success = " << success << endl;
-		myfile << "cplex.isPrimalFeasible() = " << cplex.isPrimalFeasible() << endl;
-		myfile.close();
-		infsbleinst.close();
-		return true;
-
-	}
-
-	cplex.end();
-	model.end();
-	env.end();
-	delete pinc;
-	//delete[] tracklimit;
-	return false;
-}
-
-
-bool SolveModeldenemeHeur1(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
+bool SolveModeldenemeHeur1(double& z1, int* SLAdaily, int totaltt, ofstream& myfile, ofstream& infsbleinst, int warmup, int dayindex, double& time, double* cumtime, double* cum, int pr, int sol,
 	int* cumSLAviol, int* cumYmaxviol, double* cumgap, int* cumnodes, ofstream& datarunfile, vector<int>& critics, int pencor, int penminus, int penymaxplus,
 	int maxYmin, int maxYmax, int minYmin, int buffer, vector <int> mmin, int s, int n, int tt, int m, int M, int* SLA, int* pj, int realbegweek, int begweek, int endweek, vector<Job>& Jint, vector<Job>& Jcor,
 	vector<int>& preventives, vector<int>& tardyjobs, vector<int>& correctives, int* d, int* Ymax, int* rr, int limit, int** prevprdtms, int bf, int coef, ofstream& dataday)
@@ -7062,26 +7249,31 @@ bool SolveModeldenemeHeur1(double& z1, int* SLAdaily, int totaltt, ofstream& myf
 	else
 		cout << "INFEASIBLE!!!!!!!" << endl;
 
-	cplex.setParam(IloCplex::TiLim, 60*2);
+	//cplex.setParam(IloCplex::TiLim, 60 * 2);
 
-	//cplex.writeSolution("ahmet.sol");
+	cplex.setParam(IloCplex::TiLim, 2);
 
 	time = cplex.getCplexTime();
-	IloBool success = cplex.solve();   
 
-	double elapsedtime = cplex.getCplexTime() - time; 
+	IloBool success = cplex.solve();
+	
+
+	double elapsedtime = cplex.getCplexTime() - time;
 
 	if (success && cplex.isPrimalFeasible())
 	{
-		/*if (dayindex >= 60)
-			DatatoFile(SLAdaily, n, totaltt, dayindex + 1, Jcor, Jint, prevprdtms, preventnum, m, dataday);*/
+		if (dayindex >= 60)
+		{
+			DatatoFile(infsbleinst, SLAdaily, n, totaltt, dayindex + 1, Jcor, Jint, prevprdtms, preventnum, m, dataday);
+			myfile << cplex.getNnodes() << "\n";
+		}
 
-		myfile << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() * 100 << "\n";
-		
-		/*vector<vector<Base>> cand = Write(model, cplex, env, myfile, n, begweek, endweek, realbegweek, warmup, dayindex, tt, m, s, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol, cumgap, cumnodes, buffer
+		//myfile << elapsedtime << "\t" << cplex.getObjValue() << "\t" << cplex.getMIPRelativeGap() << "\n";
+
+		vector<vector<Base>> cand = Write(model, cplex, env, myfile, n, begweek, endweek, realbegweek, warmup, dayindex, tt, m, s, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol, cumgap, cumnodes, buffer
 			, B, o, y, P, x, e, a, b, E, T, C, Sj, S, F, L, np, deltaminusSLA, deltaYmaxplus, coroutservice, datarunfile, Jcor, Jint, initials, SLA, prevprdtms);
 
-		DeleteJobsbuffer(Jint, Jcor, cplex, x, np, C, Sj, S, F, prevprdtms, preventnum, m, cand);*/
+		DeleteJobsbuffer(Jint, Jcor, cplex, x, np, C, Sj, S, F, prevprdtms, preventnum, m, cand);
 	}
 
 	else
@@ -7109,11 +7301,479 @@ bool SolveModeldenemeHeur1(double& z1, int* SLAdaily, int totaltt, ofstream& myf
 }
 
 
+void CalculateSLA(int kk, int* SLAdaily, mt19937& rngmt)
+{
+	int temptotal, totalSLA;
+
+	int slabefore = accumulate(SLAdaily, SLAdaily + 24, 0);
+
+	totalSLA = ceil(accumulate(SLAdaily, SLAdaily + 24, 0)*0.95);
+
+	int remainder = totalSLA % 6;
+
+	totalSLA = totalSLA - remainder;
+
+
+	//forsla
+	while (true)
+	{
+		int maxx = *max_element(SLAdaily, SLAdaily + 24);
+
+		vector<int> zeros;
+		vector<int> middle;
+
+		switch (kk)
+		{
+
+		case 0:
+		{
+			int smallperturberlin = ceil(maxx*0.05);
+			int largeperturberlin = ceil(maxx*0.10);
+
+			for (int i = 0; i < 4; ++i)
+			{
+
+				if (i == 0) //sabah
+				{
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturberlin);
+					int delay = -smallperturbuf(rngmt);
+
+					for (int t = 0; t <= 5; ++t)
+						SLAdaily[t] = maxx + delay;
+				}
+
+				else if (i == 1) //güniçi
+				{
+					//middle.push_back(t);
+					uniform_int_distribution<int> smallperturbuf(0, smallperturberlin);
+					int delay = -smallperturbuf(rngmt) - smallperturberlin;
+
+					for (int t = 6; t <= 11; ++t)
+						SLAdaily[t] = maxx + delay;
+
+				}
+
+				else if (i == 2) //akşam
+				{
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturberlin);
+					int delay = -smallperturbuf(rngmt);
+
+					for (int t = 12; t <= 17; ++t)
+						SLAdaily[t] = maxx + delay;
+				}
+
+				else
+				{
+					for (int t = 18; t <= 23; ++t)
+						SLAdaily[t] = 0;
+				}
+
+			}
+		}
+
+		break;
+
+		case 1: //flactuated - MetroIst-su an bunu yapalım
+		{
+
+			/*for (int i = 0; i < 24; ++i)
+			SLAdaily[i] = ceil(SLAdaily[i] * slascale);*/
+
+			int smallperturbist = ceil(maxx*0.05);
+			int largeperturbist = ceil(maxx*0.20);
+			int middleperturbist = ceil(maxx*0.10);
+
+			for (int i = 0; i < 4; ++i)
+			{
+
+				if (i == 0) //sabah
+				{
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturbist);
+					int delay = -smallperturbuf(rngmt);
+
+					//(t >= 0 && t <= 5)
+					for (int t = 0; t <= 5; ++t)
+						SLAdaily[t] = SLAdaily[t] + delay;
+				}
+
+				else if (i == 1) //güniçi
+				{
+
+					int a = middleperturbist;
+					int b = largeperturbist;
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturbist);
+					int delay = -smallperturbuf(rngmt);
+
+					for (int t = 6; t <= 11; ++t)
+						SLAdaily[t] = SLAdaily[t] + delay;
+				}
+
+				else if (i == 2) //akşam
+				{
+					int dif = -1;
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturbist);
+					int delay = smallperturbuf(rngmt);
+					dif = -smallperturbist + delay;
+
+					for (int t = 12; t <= 17; ++t)
+						SLAdaily[t] = SLAdaily[t] + dif;
+
+				}
+
+				else //SLA_t = 0 here
+				{
+					for (int t = 18; t <= 23; ++t)
+						SLAdaily[t] = 0;
+				}
+
+			}
+		}
+		break;
+
+		}
+
+		temptotal = accumulate(SLAdaily, SLAdaily + 24, 0);
+		//sort(middle.begin(), middle.end());
+
+		if (temptotal > totalSLA)
+		{
+			int dif = (temptotal - totalSLA) / 6;
+
+			for (int j = 0; j < dif; ++j)
+			{
+				int selected = j % 3;
+
+				switch (selected)
+				{
+				case 0: //orta önce
+				{
+					for (int t = 6; t <= 11; ++t)
+						--SLAdaily[t];
+				}
+
+				break;
+
+				case 1:
+				{
+					for (int t = 12; t <= 17; ++t)
+						--SLAdaily[t];
+				}
+
+				break;
+
+				case 2:
+				{
+					for (int t = 0; t <= 5; ++t)
+						--SLAdaily[t];
+				}
+
+				break;
+
+				}
+
+			}
+		}
+
+		///////////////////
+
+		if (temptotal < totalSLA)
+		{
+			int dif = (totalSLA - temptotal) / 6;
+
+			for (int j = 0; j < dif; ++j)
+			{
+				int selected = j % 3;
+
+				switch (selected)
+				{
+				case 0: //orta önce
+				{
+					for (int t = 6; t <= 11; ++t)
+						++SLAdaily[t];
+				}
+
+				break;
+
+				case 1:
+				{
+					for (int t = 12; t <= 17; ++t)
+						++SLAdaily[t];
+				}
+
+				break;
+
+				case 2:
+				{
+					for (int t = 0; t <= 5; ++t)
+						++SLAdaily[t];
+				}
+
+				break;
+
+				}
+
+			}
+
+		}
+
+		int total = accumulate(SLAdaily, SLAdaily + 24, 0);
+		if (total == totalSLA)
+			break;
+	}
+}
+
+
+void SLAGeneration(double slascale, int kk, int totalSLA, int* SLAdaily, string& SLAtype, mt19937& rngmt)
+{
+	vector<int> remainingplus;
+	vector<int> remainingminus;
+	int temptotal;
+
+	//random sla generation
+	int total = -1;
+
+	totalSLA = ceil(accumulate(SLAdaily, SLAdaily + 24, 0)*0.95);
+
+	int slabefore = accumulate(SLAdaily, SLAdaily + 24, 0);
+
+	int remainder = totalSLA % 6;
+
+	totalSLA = totalSLA - remainder;
+
+
+	//forsla
+	while (true)
+	{
+		int maxx = *max_element(SLAdaily, SLAdaily + 24);
+
+		vector<int> zeros;
+		vector<int> middle;
+
+		switch (kk)
+		{
+
+		case 0:
+		{
+			int smallperturberlin = ceil(maxx*0.05);
+			int largeperturberlin = ceil(maxx*0.10);
+
+			for (int i = 0; i < 4; ++i)
+			{
+
+				if (i == 0) //sabah
+				{
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturberlin);
+					int delay = -smallperturbuf(rngmt);
+
+					for (int t = 0; t <= 5; ++t)
+						SLAdaily[t] = maxx + delay;
+				}
+
+				else if (i == 1) //güniçi
+				{
+					//middle.push_back(t);
+					uniform_int_distribution<int> smallperturbuf(0, smallperturberlin);
+					int delay = -smallperturbuf(rngmt) - smallperturberlin;
+
+					for (int t = 6; t <= 11; ++t)
+						SLAdaily[t] = maxx + delay;
+
+				}
+
+				else if (i == 2) //akşam
+				{
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturberlin);
+					int delay = -smallperturbuf(rngmt);
+
+					for (int t = 12; t <= 17; ++t)
+						SLAdaily[t] = maxx + delay;
+				}
+
+				else
+				{
+					for (int t = 18; t <= 23; ++t)
+						SLAdaily[t] = 0;
+				}
+
+			}
+		}
+
+		break;
+
+		case 1: //flactuated - MetroIst-su an bunu yapalım
+		{
+
+			/*for (int i = 0; i < 24; ++i)
+			SLAdaily[i] = ceil(SLAdaily[i] * slascale);*/
+
+			int smallperturbist = ceil(maxx*0.05);
+			int largeperturbist = ceil(maxx*0.20);
+			int middleperturbist = ceil(maxx*0.10);
+
+			for (int i = 0; i < 4; ++i)
+			{
+
+				if (i == 0) //sabah
+				{
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturbist);
+					int delay = -smallperturbuf(rngmt);
+
+					//(t >= 0 && t <= 5)
+					for (int t = 0; t <= 5; ++t)
+						SLAdaily[t] = SLAdaily[t] + delay;
+				}
+
+				else if (i == 1) //güniçi
+				{
+
+					int a = middleperturbist;
+					int b = largeperturbist;
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturbist);
+					int delay = -smallperturbuf(rngmt);
+
+					for (int t = 6; t <= 11; ++t)
+						SLAdaily[t] = SLAdaily[t] + delay;
+				}
+
+				else if (i == 2) //akşam
+				{
+					int dif = -1;
+
+					uniform_int_distribution<int> smallperturbuf(0, smallperturbist);
+					int delay = smallperturbuf(rngmt);
+					dif = -smallperturbist + delay;
+
+					for (int t = 12; t <= 17; ++t)
+						SLAdaily[t] = SLAdaily[t] + dif;
+
+				}
+
+				else //SLA_t = 0 here
+				{
+					for (int t = 18; t <= 23; ++t)
+						SLAdaily[t] = 0;
+				}
+
+			}
+		}
+		break;
+
+		}
+
+		temptotal = accumulate(SLAdaily, SLAdaily + 24, 0);
+		//sort(middle.begin(), middle.end());
+
+		if (temptotal > totalSLA)
+		{
+			int dif = (temptotal - totalSLA) / 6;
+
+			for (int j = 0; j < dif; ++j)
+			{
+				int selected = j % 3;
+
+				switch (selected)
+				{
+				case 0: //orta önce
+				{
+					for (int t = 6; t <= 11; ++t)
+						--SLAdaily[t];
+				}
+
+				break;
+
+				case 1:
+				{
+					for (int t = 12; t <= 17; ++t)
+						--SLAdaily[t];
+				}
+
+				break;
+
+				case 2:
+				{
+					for (int t = 0; t <= 5; ++t)
+						--SLAdaily[t];
+				}
+
+				break;
+
+				}
+
+			}
+		}
+
+		///////////////////
+
+		if (temptotal < totalSLA)
+		{
+			int dif = (totalSLA - temptotal) / 6;
+
+			for (int j = 0; j < dif; ++j)
+			{
+				int selected = j % 3;
+
+				switch (selected)
+				{
+				case 0: //orta önce
+				{
+					for (int t = 6; t <= 11; ++t)
+						++SLAdaily[t];
+				}
+
+				break;
+
+				case 1:
+				{
+					for (int t = 12; t <= 17; ++t)
+						++SLAdaily[t];
+				}
+
+				break;
+
+				case 2:
+				{
+					for (int t = 0; t <= 5; ++t)
+						++SLAdaily[t];
+				}
+
+				break;
+
+				}
+
+			}
+
+		}
+
+		int total = accumulate(SLAdaily, SLAdaily + 24, 0);
+		if (total == totalSLA)
+			break;
+	}
+
+	switch (kk)
+	{
+	case 0:
+		SLAtype = "Berl_";
+		break;
+	case 1:
+		SLAtype = "Ist_";
+		break;
+	}
+}
+
 int main()
 {
 	try
 	{
-		//ofstream mfile("data.txt");
+		ofstream mfile("data.txt");
 		ofstream datarunfile("all.txt");
 		//sonra buradaki araç sayısını arttırırsın!
 		int k = 0;
@@ -7153,311 +7813,464 @@ int main()
 		int buffer[3] = { 0, 10, 0 };
 		int coef = 4;
 
+		//int buffer[3] = { 0, 10, 40 };
+
 		int v1;
 
-		int ust = 10;
+		//27.02.2017 - experiment parameters
+		int jobvarintrvl[2];
+		int slatpintrvl[2];
+		int tsizeintrvl[2];
+		int allowintrvl[2];
+		int scaleintrvl[2];
+		int piintrvl[2];
+		int corlevintrvl[2];
+		int levelintrvl[2];
+		int mtbfintrvl[2];
+		int system[2];
+		int bufferintrvl[2];
+
+		int ust = 2;
 		int alt = 1;
 
-		ofstream myfile("myfile.txt");
+		/*myfile << "sys\t" << "m\t" << "slatype\t" << "pi\t" << "tau\t" << "v1\t" << "buf\t" << "seed\t"
+		<< "week\t" << "#prevs\t" << "#cors\t" << "SLAviol\t" << "Ymaxviol\t"
+		<< "Prevtard\t" << "Cortard\t" << "PrevEarl\t" << "Wait\t" << "load\t" << "Time\n";*/
 
-		//for (int i = 0; i < 3; ++i)
-		for (int i = 2; i < 3; ++i)
+		for (int dos = alt; dos < ust; ++dos)
 		{
-			int* SLAdaily; 
-			string pathparent;
-			int m;
+			string line;
+			ifstream file("dosya1." + to_string(dos) + ".txt");
 
-			//SLAdaily = new int[24]{0, 6, 10, 10, 7, 7, 7, 7, 7, 8, 12, 12, 11, 11, 10, 7, 6, 5, 5, 2, 0, 0, 0, 0};
-			//pathparent = "D:\\Users\\suuser\\Desktop\\tez\\cplex tez\\19.02.2016-Ogleden sonra\\Yeni klasör\\runs\\medium\\pseudo\\cor\\real\\";
-			//20.3.20: only to test one case			
-			//aşağıya cor jobs da okuyucu kod koy
+			ofstream myfile("myfile" + to_string(dos) + ".txt");
 
-			switch (i)
+			//ifstream file("C:\\Users/muratelhuseyni/Desktop/cplex pigeons/runs/dosya" + to_string(dos) + ".2.txt"); //reads file path
+			if (file.is_open())
 			{
-			case 0: //system2
-			{
-				SLAdaily = new int[24]{90, 90, 90, 90, 90, 90, 84, 84, 84, 84, 84, 84, 86, 86, 86, 86, 86, 86, 0, 0, 0, 0, 0, 0};
-				pathparent = "C:\\Users\\labuser\\Desktop\\cplex tez\\19.02.2016-Ogleden sonra\\Yeni klasör\\runs\\low\\pseudo\\cor\\";				
-				m = 3;
-			}
-			break;
-
-			case 1: //system4
-			{
-				SLAdaily = new int[24]{96, 96, 96, 96, 96, 96, 74, 74, 74, 74, 74, 74, 90, 90, 90, 90, 90, 90, 0, 0, 0, 0, 0, 0};
-				pathparent = "C:\\Users\\labuser\\Desktop\\cplex tez\\19.02.2016-Ogleden sonra\\Yeni klasör\\runs\\medium\\pseudo\\cor\\real\\";
-				m = 2;
-			}
-			break;
-
-			case 2: 
-			{
-				//system1 //least load //m3_slaS_tau10068_pi720_v0.2
-				/*SLAdaily = new int[24]{90, 90, 90, 90, 90, 90, 83, 83, 83, 83, 83, 83, 87, 87, 87, 87, 87, 87, 0, 0, 0, 0, 0, 0};
-				pathparent = "C:\\Users\\labuser\\Desktop\\cplex tez\\19.02.2016-Ogleden sonra\\Yeni klasör\\runs\\sys1'\\pseudo\\";
-				m = 3;*/
-
-				//system3 //m2_slaS_tau2508_pi720_v0.1
-				SLAdaily = new int[24]{88, 88, 88, 88, 88, 88, 85, 85, 85, 85, 85, 85, 87, 87, 87, 87, 87, 87, 0, 0, 0, 0, 0, 0};
-				pathparent = "C:\\Users\\labuser\\Desktop\\cplex tez\\19.02.2016-Ogleden sonra\\Yeni klasör\\runs\\sys3'\\pseudo\\";
-				m = 2; 
-			}
-			break;
-			}
-
-			for (int dos = alt; dos <= ust; ++dos)
-			{
-				string line;
-				//ifstream file(dos + ".txt");			
-
-				string path = pathparent + to_string(dos) + ".txt";
-				ifstream file(path);
-
-				int pr = 0;
-				int scale = 1;				
-				int** prevprdtms = new int*[m];
-				for (int i = 0; i < m; i++)
-					prevprdtms[i] = new int[4]{-1, -1, -1, -1};
-
-				string ktype;
-				string SLAtype;
-
-				JobInt Jint;
-				JobInt Jcor;
-
-				int totaltt = 168 * 40; // to diminish tail effect
-
-				//number = to_string(slascale[scale]);
-				double cum[3] = { 0, 0, 0 };
-				int cumSLAviol[3] = { 0, 0, 0 };
-				double cumtime[3] = { 0, 0, 0 };
-				int cumschedjobs = 0;
-				double cumgap[3] = { 0, 0, 0 };
-				int cumnodes[3] = { 0, 0, 0 };
-				int cumYmaxviol[3] = { 0, 0, 0 };
-
-				//int SLAdaily[24] = { 100, 100, 100, 100, 100, 100, 78, 78, 78, 78, 78, 78, 96, 96, 96, 96, 96, 96, 0, 0, 0, 0, 0, 0 }; //+1 dor heap corruption								
-
-				vector<Job> Jcurprv;
-				vector<Job> Jcurcor;
-				vector<Job> tempJcurprv;
-				vector<Job> tempJcurcor;
-				vector<int> mmin;
-				vector<int> tardyjobs;
-				vector<Job> Jprvnext;
-				vector<Job> Jcornext;
-				int* SLA = new int[tt];
-
-				for (int dayindex = 0; dayindex < 1; ++dayindex) //16: to test last week
+				int count = 0;
+				while (getline(file, line)) //line her bir satırı okur
 				{
-					ofstream dataday(to_string(dayindex) + ".txt");
+					istringstream Stream(line);
+					string name;
 
-					int begweek = dayindex * 24;
-					int endweek = begweek + tt; //w.r.t hrs
-					int n = 105;
-
-					//Gerçek büyük boyutlu sla
-
-					for (int i = 0; i < tt; ++i)
+					switch (count)
 					{
-						int k = i % 24;
-						SLA[i] = SLAdaily[k];
+					case 0:
+						Stream >> name >> slatpintrvl[0] >> slatpintrvl[1];
+						break;
+					case 1:
+						Stream >> name >> tsizeintrvl[0] >> tsizeintrvl[1];
+						break;
+					case 2:
+						Stream >> name >> piintrvl[0] >> piintrvl[1];
+						break;
+					case 3:
+						Stream >> name >> allowintrvl[0] >> allowintrvl[1];
+						break;
+					case 4:
+						Stream >> name >> system[0] >> system[1];
+						break;
+					case 5:
+						Stream >> name >> mtbfintrvl[0] >> mtbfintrvl[1];
+						break;
+					case 6:
+						Stream >> name >> bufferintrvl[0] >> bufferintrvl[1];
+						break;
 					}
 
-					int* Ymax = new int[n];
-					int* d = new int[n];
-					int* rr = new int[n];
-					int* pj = new int[n];
-
-					int bosinit = 0;
-
-					int maxYmin = -1;
-					int minYmin = tt;
-					int maxYmax = -1;
-					int pmin = tt;
-
-					int realbegweek=0; //olması gereken-initialize
-					begweek = 0;
-					endweek = tt;
-					bool ayrac = false;
-					double z2;
-
-					if (file.is_open())
-					{
-						int count = 0;
-						while (getline(file, line)) //line her bir satırı okur
-						{
-							istringstream Stream(line); //ID pj rj dj Ymax
-							++count;
-
-							if (line == "") //dosyadan dosyaya değişiyor. Break pointle deneyip bakılmalı!
-							{
-								ayrac = true;
-								continue;
-							}
-
-							if (count == 1)
-							{
-								Stream >> realbegweek;
-								continue;
-							}							
-
-							if (ayrac == false)
-							{
-								int job, type, delay, base, t,ymax;
-								t = count - 2;
-								Stream >> job >> type >> delay >> base >> ymax;
-
-								if (type == 0)
-								{
-									prevprdtms[t][0] = job;
-									prevprdtms[t][1] = type;
-									prevprdtms[t][2] = delay;
-									continue;
-								}
-								
-								//mapping
-								//Jcurcor.emplace_back(job, rj, ymax, dj, delay);
-								Jcurcor.emplace_back(job, delay, ymax, base, type);
-							}
-
-							else
-							{
-								int ID, dj, rj, pj, Ymax;
-								Stream >> ID >> pj >> rj >> dj >> Ymax;
-								Jcurprv.emplace_back(ID, rj, Ymax, dj, pj);
-							}
-
-						}
-						file.close();
-					}
-
-					//determine s
-					int totaljobs = Jcurprv.size() + Jcurcor.size();
-
-					for each (Job job in Jcurprv)
-					{
-						int pj = job.pj;
-						int rj = job.rj;
-						mmin.push_back(pj);
-						/*if (Ymax[j] > maxYmax)
-						maxYmax = Ymax[j];*/
-						if (pj < pmin)
-							pmin = pj;
-						if (rj < minYmin)
-							minYmin = rj;
-						if (rj > maxYmin)
-							maxYmin = rj;
-					}
-
-					for each (Job job in Jcurcor)
-					{
-						int pj = job.pj;
-						int rj = job.rj;
-						mmin.push_back(pj);
-						/*if (Ymax[j] > maxYmax)
-						maxYmax = Ymax[j];*/
-						if (pj < pmin)
-							pmin = pj;
-						if (rj < minYmin)
-							minYmin = rj;
-						if (rj > maxYmin)
-							maxYmin = rj;
-					}
-
-					//for heuristicS
-					//merge two sets in preventives
-
-					for each (Job job in Jcurcor)
-					{
-						int j = job.ID;
-						Ymax[j] = job.Ymax - realbegweek;
-						d[j] = job.dj - realbegweek;
-						rr[j] = job.rj - realbegweek;
-						pj[j] = job.pj;
-						critics.push_back(j);
-						correctives.push_back(j);
-						tardyjobs.push_back(j);
-					}
-
-					for each (Job job in Jcurprv)
-					{
-						int j = job.ID;
-						Ymax[j] = job.Ymax - realbegweek;
-						d[j] = job.dj - realbegweek;
-						rr[j] = job.rj - realbegweek;
-						pj[j] = job.pj;
-						preventives.push_back(j);
-						critics.push_back(j);
-					}
-
-
-					for (int job : preventives)
-					{
-						if (Ymax[job] <= 0)
-							tardyjobs.push_back(job);
-					}
-
-					int sol = 0;
-					cout << "dayindex =" << dayindex << endl;
-
-					bool infeasible = false;
-					int warmup = 0;
-					int bf = 0;
-
-					int s = totaljobs * m;
-					sort(mmin.begin(), mmin.end(), greater<int>()); //descending order
-
-					//////normal model
-					infeasible = SolveModel(z2, SLAdaily, totaltt, myfile, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
-						cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m, M, SLA, pj, realbegweek, begweek, endweek,
-						Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef);
-
-					////////model+cut
-					infeasible = SolveModelCut(z2, SLAdaily, totaltt, myfile, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
-						cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m, M, SLA, pj, realbegweek, begweek, endweek,
-						Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef); 
-
-					//Heur + model2 + cuts
-					infeasible = SolveModeldenemeHeur1(z2, SLAdaily, totaltt, myfile, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
-						cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m, M, SLA, pj, realbegweek, begweek, endweek,
-						Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef, dataday);
-
-					//model1+heur
-					/*infeasible = SolveModelHeur1(z2, SLAdaily, totaltt, myfile, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
-					cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m, M, SLA, pj, realbegweek, begweek, endweek,
-					Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef, dataday);*/
-
-					
-					preventives.clear();
-					correctives.clear();
-					critics.clear();
-					mmin.clear();
-					tardyjobs.clear();
-
-					delete[] Ymax;
-					delete[] d;
-					delete[] pj;
-					delete[] rr;
-
-					dataday.close();
-				} //week end
-
-				Jint.clear();
-				Jcor.clear();
-				Jcurcor.clear();
-				Jcurprv.clear();
-
-				delete[] SLA;
-
-				for (int i = 0; i < m; i++)
-					delete[] prevprdtms[i];
-				delete[] prevprdtms;
+					++count;
+				}
+				file.close();
 			}
-		
+
+			for (int slatp = slatpintrvl[0]; slatp < slatpintrvl[1]; ++slatp)		//slatype
+				for (int tsize = tsizeintrvl[0]; tsize < tsizeintrvl[1]; ++tsize)		//m
+					for (int allow = allowintrvl[0]; allow < allowintrvl[1]; ++allow)		//v1 - prev intvl allowance
+						for (int pi = piintrvl[0]; pi < piintrvl[1]; ++pi)		//mean time btw prev arrivals
+							for (int sys = system[0]; sys < system[1]; ++sys)
+								for (int mtbf = mtbfintrvl[0]; mtbf < mtbfintrvl[1]; ++mtbf)
+									for (int bf = bufferintrvl[0]; bf < bufferintrvl[1]; ++bf)
+
+									{
+										mt19937 rngmt; //instantiate mersennte twister engine
+										int initseed = std::time(NULL); //select current computer clock time
+
+										initseed = 1526061908;
+
+										rngmt.seed(initseed);
+										int pr = 0;
+										int scale = 1;
+
+										int** prevprdtms = new int*[m[tsize]];
+										for (int i = 0; i < m[tsize]; i++)
+											prevprdtms[i] = new int[4]{-1, -1, -1, -1};
+
+										string ktype;
+										string SLAtype;
+
+										JobInt Jint;
+										JobInt Jcor;
+
+										v1 = ceil(vv1[allow] * postpone[pi]);
+
+										int totaltt = 168 * 40; // to diminish tail effect
+										double lambda = (double)totaltt / tau[mtbf];
+
+										//number = to_string(slascale[scale]);
+										double cum[3] = { 0, 0, 0 };
+										int cumSLAviol[3] = { 0, 0, 0 };
+										double cumtime[3] = { 0, 0, 0 };
+										int cumschedjobs = 0;
+										double cumgap[3] = { 0, 0, 0 };
+										int cumnodes[3] = { 0, 0, 0 };
+										int cumYmaxviol[3] = { 0, 0, 0 };
+
+										int SLAdaily[24] = { 100, 100, 100, 100, 100, 100, 78, 78, 78, 78, 78, 78, 96, 96, 96, 96, 96, 96, 0, 0, 0, 0, 0, 0 }; //+1 dor heap corruption
+
+										int totalSLA = 0; //= accumulate(SLAdaily, SLAdaily + 24, 0);
+
+										//new sla
+										for (int i = 0; i < 24; ++i)
+											SLAdaily[i] = ceil(SLAdaily[i] * scale);
+
+										//27.11.17 - OSR
+										int SLAdailymax = *max_element(SLAdaily, SLAdaily + 24);
+										int n = SLAdailymax*1.05; //04.02.18
+
+										SLAGeneration(scale, slatp, totalSLA, SLAdaily, SLAtype, rngmt);
+
+										//cout << SLAtype << endl;
+										for (int t = 0; t < 24; ++t)
+											cout << SLAdaily[t] << endl;
+
+										r = new int[n];
+
+										//Gerçek büyük boyutlu sla
+										int* SLA = new int[tt];
+
+										for (int i = 0; i < tt; ++i)
+										{
+											int k = i % 24;
+											SLA[i] = SLAdaily[k];
+										}
+
+										//int weeks = floor(postpone[pi] / 168); //24.11.17
+										int maxY = -1;
+
+										//Preventive Job Interval generation 
+										for (int j = 0; j < n; j++)
+										{
+											int Ymax = 0;
+											int Ymin = 0;
+											/*int Yminprev = 0;*/
+											int i = 0;
+											vector<Job> jobjint;
+											uniform_int_distribution<int> postunif(0, 168 * 4); //ilk iki hafta
+
+											r[j] = postunif(rngmt);
+
+											while (true)
+											{
+												if (i == 0)
+													Ymin = r[j];
+												else
+												{
+													//Ymin += postpone[pi] + rand() % (v1 + 1);
+													//24.02
+													uniform_int_distribution<int> v1unif(0, v1);
+													int delay = v1unif(rngmt);
+													Ymin += postpone[pi] + delay;
+												}
+
+												Ymax = Ymin + 2 * v1; //2=ymaxcoef_1
+												if (Ymax > totaltt) // to avoid over interval generation
+													break;
+												int d = ceil(Ymin + 1.5*v1);    //dcoef = 1.5
+												//int p = pjob[level] + rand() % (change + 1);
+												uniform_int_distribution<int> kappaunif(pjob, pjob + 2);
+												int p = kappaunif(rngmt);
+												jobjint.emplace_back(j, Ymin, Ymax, d, p);
+												++i;
+											}
+
+											Jint.push_back(jobjint);
+											jobjint.clear();
+										}
+
+										//generate corrective jobs - Jcor
+										for (int j = 0; j < n; j++)
+										{
+											int Ymin = 0;
+											int Yminprev = 0;
+											vector<Job> jobjint;
+											//for (int i = 0; i < ceil(lambda); ++i)
+											//{
+											while (true)
+											{
+												uniform_int_distribution<int> kappaunif(pcor, pcor + 2);
+												int p = kappaunif(rngmt);
+
+												while (true)
+												{
+													//double u = static_cast<double>(rand()) / RAND_MAX; 
+													uniform_real_distribution<double> zeroneunif(0.0, 1.0); //generate unirandom number
+													double u = zeroneunif(rngmt);
+													int intar = ceil(-tau[mtbf] * log(1 - u));
+													if (Yminprev + p < Ymin + intar)
+													{
+														Ymin += intar;
+														break;
+													}
+												}
+
+												int Ymax = Ymin + 24 * alpha;
+
+												int d = Ymin;
+
+												if (Ymin >= totaltt)
+													break;
+
+												jobjint.emplace_back(j, Ymin, Ymax, d, p);
+
+												Yminprev = Ymin;
+											}
+
+											//}
+
+											Jcor.push_back(jobjint);
+											jobjint.clear();
+										}
+
+										vector<Job> Jcurprv;
+										vector<Job> Jcurcor;
+										vector<Job> tempJcurprv;
+										vector<Job> tempJcurcor;
+										vector<int> mmin;
+										vector<int> tardyjobs;
+										vector<Job> Jprvnext;
+										vector<Job> Jcornext;
+
+										//J-Jcurcor-Jint'den arda kalan rastgele seç ama bunu yaparken de jprevden de daha az onemli olsun
+										// ve belli aralıkta yer alsın
+
+										int warmup = 0;
+
+										ofstream data("data.txt");
+
+										string slatype;
+
+										switch (slatp)
+										{
+										case 0:
+											slatype = "S";
+											break;
+										case 1:
+											slatype = "F";
+											break;
+										}
+
+										data << "\nint SLAdaily=new [24]{";
+										for (int t = 0; t < 24; ++t)
+										{
+											data << SLAdaily[t];
+											if (t == 23)
+												continue;
+											data << ",";
+										}
+
+										data << "n=" << n << "\n";
+
+										for (int dayindex = 0; dayindex < totalday; ++dayindex) //16: to test last week
+										{
+											ofstream dataday(to_string(dayindex) + ".txt");
+
+											int begweek = dayindex * 24;
+											int endweek = begweek + tt; //w.r.t hrs
+
+											int* Ymax = new int[n];
+											int* d = new int[n];
+											int* rr = new int[n];
+											int* pj = new int[n];
+
+											int bosinit = 0;
+
+											if (sys == 0)
+											{
+												GenerateWeeklyJobwoutcor(Jint, Jprvnext, Jcornext, Jcurprv, Jcurcor, tempJcurprv, tempJcurcor, endweek, begweek, tt);
+												Jcurcor.clear();
+											}
+
+											else
+												GenerateWeeklyJob(Jint, Jcor, Jprvnext, Jcornext, Jcurprv, Jcurcor, tempJcurprv, tempJcurcor, endweek, begweek, tt, prevprdtms, m[tsize], bf, coef);
+
+											int maxYmin = -1;
+											int minYmin = tt;
+											int maxYmax = -1;
+											int pmin = tt;
+
+											int realbegweek = begweek; //olması gereken
+											begweek = 0;
+											endweek = tt;
+
+											double z2;
+
+											//determine s
+											int totaljobs = Jcurprv.size() + Jcurcor.size();
+											if (totaljobs == 0)
+											{
+												if (dayindex >= 60)
+												{
+													myfile << sys << "\t" << m[tsize] << "\t" << slatype << "\t" << postpone[pi] << "\t"
+														<< tau[mtbf] << "\t" << vv1[allow] << "\t" << bf << "\t" << initseed << "\t";
+
+													myfile << 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t"
+														<< 0 << "\t" << 0 << "\t" << 0 << "\t" << 0 << "\t"
+														<< 0 << "\t" << 0
+														<< "\t" << setprecision(2) << fixed << 0;
+													myfile << "\n";
+												}
+												continue;
+											}
+
+											for each (Job job in Jcurprv)
+											{
+												int pj = job.pj;
+												int rj = job.rj;
+												mmin.push_back(pj);
+												/*if (Ymax[j] > maxYmax)
+												maxYmax = Ymax[j];*/
+												if (pj < pmin)
+													pmin = pj;
+												if (rj < minYmin)
+													minYmin = rj;
+												if (rj > maxYmin)
+													maxYmin = rj;
+											}
+
+											for each (Job job in Jcurcor)
+											{
+												int pj = job.pj;
+												int rj = job.rj;
+												mmin.push_back(pj);
+												/*if (Ymax[j] > maxYmax)
+												maxYmax = Ymax[j];*/
+												if (pj < pmin)
+													pmin = pj;
+												if (rj < minYmin)
+													minYmin = rj;
+												if (rj > maxYmin)
+													maxYmin = rj;
+											}
+
+											//for heuristicS
+											//merge two sets in preventives
+
+											for each (Job job in Jcurcor)
+											{
+												int j = job.ID;
+												Ymax[j] = job.Ymax - realbegweek;
+												d[j] = job.dj - realbegweek;
+												rr[j] = job.rj - realbegweek;
+												pj[j] = job.pj;
+												critics.push_back(j);
+												correctives.push_back(j);
+												tardyjobs.push_back(j);
+											}
+
+											for each (Job job in Jcurprv)
+											{
+												int j = job.ID;
+												Ymax[j] = job.Ymax - realbegweek;
+												d[j] = job.dj - realbegweek;
+												rr[j] = job.rj - realbegweek;
+												pj[j] = job.pj;
+												preventives.push_back(j);
+												critics.push_back(j);
+											}
+
+
+											for (int job : preventives)
+											{
+												if (Ymax[job] <= 0)
+													tardyjobs.push_back(job);
+											}
+
+											int sol = 0;
+											cout << "dayindex =" << dayindex << endl;
+
+											bool infeasible = false;
+
+											int s = totaljobs * m[tsize];
+											sort(mmin.begin(), mmin.end(), greater<int>()); //descending order
+
+											if (dayindex >= 60)
+												myfile << sys << "\t" << m[tsize] << "\t" << slatype << "\t" << postpone[pi] << "\t"
+												<< tau[mtbf] << "\t" << vv1[allow] << "\t" << bf << "\t" << initseed << "\t";
+
+											//with full optim cut
+											if (dayindex < 60)
+												infeasible = SolveModeldenemeHeur1(z2, SLAdaily, totaltt, myfile, data, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
+												cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m[tsize], M, SLA, pj, realbegweek, begweek, endweek,
+												Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef, dataday);
+
+											else
+											{
+												//normal model
+												infeasible = SolveModel(z2, SLAdaily, totaltt, myfile, data, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
+													cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m[tsize], M, SLA, pj, realbegweek, begweek, endweek,
+													Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef);
+
+												////model+cut
+												infeasible = SolveModelCut(z2, SLAdaily, totaltt, myfile, data, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
+													cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m[tsize], M, SLA, pj, realbegweek, begweek, endweek,
+													Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef);
+
+												//model+heur
+												infeasible = SolveModelonlyHeur(z2, SLAdaily, totaltt, myfile, data, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
+													cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m[tsize], M, SLA, pj, realbegweek, begweek, endweek,
+													Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef);
+
+												//model+cut+heur
+												infeasible = SolveModeldenemeHeur1(z2, SLAdaily, totaltt, myfile, data, warmup, dayindex, time, cumtime, cum, pr, sol, cumSLAviol, cumYmaxviol,
+													cumgap, cumnodes, datarunfile, critics, pencor, penminus, penymaxplus, maxYmin, maxYmax, minYmin, buffer[bf], mmin, s, n, tt, m[tsize], M, SLA, pj, realbegweek, begweek, endweek,
+													Jcurprv, Jcurcor, preventives, tardyjobs, correctives, d, Ymax, rr, limit, prevprdtms, bf, coef, dataday);
+											}
+
+											//Heur + model2 + cuts
+											preventives.clear();
+											correctives.clear();
+											critics.clear();
+											mmin.clear();
+											tardyjobs.clear();
+
+											delete[] Ymax;
+											delete[] d;
+											delete[] pj;
+											delete[] rr;
+
+											dataday.close();
+										} //week end
+
+										Jint.clear();
+										Jcor.clear();
+										Jcurcor.clear();
+										Jcurprv.clear();
+
+										delete[] SLA;
+										delete[] r;
+
+										for (int i = 0; i < m[tsize]; i++)
+											delete[] prevprdtms[i];
+										delete[] prevprdtms;
+
+										//myfile.close();
+									} //for end
+
+			myfile.close();
+
 		}
 
-		myfile.close();
+
 	}
 
 	catch (IloException& exception)
